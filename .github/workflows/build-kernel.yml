@@ -18,12 +18,15 @@ jobs:
           build-essential libncurses-dev bison flex libssl-dev libelf-dev \
           bc git-core gnupg ccache zip curl lzop libstdc++6 libc6-dev \
           python3 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
-
-    - name: Tải Mã nguồn Kernel và Toolchain
+ 
+    - name: Tải Toolchain
       run: |
-        # Tải Clang toolchain (Ví dụ: Google Proton Clang hoặc AOSP Clang)
-        git clone --depth=1 https://gitlab.com/DankCode/proton-clang.git -b master clang
-
+        # Xóa thư mục clang nếu đã tồn tại rác từ lần chạy trước
+        rm -rf clang
+        
+        # Clone repo Clang mới
+        git clone --depth=1 https://github.com/kdrag0n/proton-clang.git -b master clang
+        
     - name: Biên dịch Kernel
       run: |
         
