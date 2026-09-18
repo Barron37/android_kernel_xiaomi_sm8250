@@ -11,6 +11,7 @@ jobs:
 
     - name: Biên dịch Kernel
       run: |
+        cd $GITHUB_WORKSPACE
         # 1. Thêm Clang vào PATH
         export PATH="$(pwd)/clang/bin:$PATH"
         
