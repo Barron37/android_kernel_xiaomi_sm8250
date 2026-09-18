@@ -21,15 +21,11 @@ jobs:
 
     - name: Tải Mã nguồn Kernel và Toolchain
       run: |
-        # Thay thế URL và Branch bằng Kernel của thiết bị bạn
-        git clone --depth=1 https://github.com/Barron37/android_kernel_xiaomi_sm8250.git -b staging/uvite kernel
-        
         # Tải Clang toolchain (Ví dụ: Google Proton Clang hoặc AOSP Clang)
         git clone --depth=1 https://gitlab.com/DankCode/proton-clang.git -b master clang
 
     - name: Biên dịch Kernel
       run: |
-        cd kernel
         
         # Thiết lập biến môi trường
         export PATH="$(pwd)/../clang/bin:$PATH"
