@@ -1,0 +1,67 @@
+name: Build Android Kernel
+
+on:
+  workflow_dispatch: # Cho phép bấm nút trigger thủ công trên GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Cài đặt các gói phụ thuộc (Dependencies)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential libncurses-dev bison flex libssl-dev libelf-dev \
+          bc git-core gnupg ccache zip curl lzop libstdc++6 libc6-dev \
+          python3 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+
+    - name: Tải Mã nguồn Kernel và Toolchain
+      run: |
+        # Thay thế URL và Branch bằng Kernel của thiết bị bạn
+        git clone --depth=1 https://github.com/Barron37/android_kernel_xiaomi_sm8250.git -b staging/uvite kernel
+        
+        # Tải Clang toolchain (Ví dụ: Google Proton Clang hoặc AOSP Clang)
+        git clone --depth=1 https://gitlab.com/DankCode/proton-clang.git -b master clang
+
+    - name: Biên dịch Kernel
+      run: |
+        cd kernel
+        
+        # Thiết lập biến môi trường
+        export PATH="$(pwd)/../clang/bin:$PATH"
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        export CC=clang
+        
+        # 1. Tạo file .config (Thay 'your_device_defconfig' bằng file defconfig của bạn)
+        make O=out munch_defconfig
+        
+        # 2. Bắt đầu build
+        make -j$(nproc --all) O=out
+
+    - name: Thu thập kết quả Build
+      run: |
+        # Kiểm tra xem file Image hoặc Image.gz-dtb đã được tạo chưa
+        if [ -f "kernel/out/arch/arm64/boot/Image.gz-dtb" ]; then
+          echo "Build thành công!"
+          mkdir -p artifacts
+          cp kernel/out/arch/arm64/boot/Image.gz-dtb artifacts/
+        elif [ -f "kernel/out/arch/arm64/boot/Image" ]; then
+          mkdir -p artifacts
+          cp kernel/out/arch/arm64/boot/Image artifacts/
+        else
+          echo "Không tìm thấy file Kernel đầu ra!" && exit 1
+        fi
+
+    - name: Tải Kernel lên Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Android-Kernel-Build
+        path: artifacts/
+        
