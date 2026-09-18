@@ -8,7 +8,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
+    - name: Cài đặt các gói phụ thuộc (Dependencies)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential libncurses-dev bison flex libssl-dev libelf-dev \
+          bc git-core gnupg ccache zip curl lzop libstdc++6 libc6-dev \
+          python3 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+ 
+    - name: Tải Toolchain
+      run: |
+        # Xóa thư mục clang nếu đã tồn tại rác từ lần chạy trước
+        rm -rf clang
+        
+        # Clone repo Clang mới
+        git clone --depth=1 https://github.com/kdrag0n/proton-clang.git -b master clang
+        
     - name: Biên dịch Kernel
       run: |
         cd $GITHUB_WORKSPACE
