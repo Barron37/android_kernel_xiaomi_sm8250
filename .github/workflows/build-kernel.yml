@@ -8,41 +8,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
 
-    - name: Cài đặt các gói phụ thuộc (Dependencies)
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential libncurses-dev bison flex libssl-dev libelf-dev \
-          bc git-core gnupg ccache zip curl lzop libstdc++6 libc6-dev \
-          python3 gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
- 
-    - name: Tải Toolchain
-      run: |
-        # Xóa thư mục clang nếu đã tồn tại rác từ lần chạy trước
-        rm -rf clang
-        
-        # Clone repo Clang mới
-        git clone --depth=1 https://github.com/kdrag0n/proton-clang.git -b master clang
-        
     - name: Biên dịch Kernel
       run: |
+        # 1. Thêm Clang vào PATH
+        export PATH="$(pwd)/clang/bin:$PATH"
         
-        # Thiết lập biến môi trường
-        export PATH="$(pwd)/../clang/bin:$PATH"
+        # 2. Khai báo các biến môi trường bắt buộc cho Clang LLVM
         export ARCH=arm64
         export SUBARCH=arm64
+        export CC=clang
+        export CXX=clang++
+        export CLANG_TRIPLE=aarch64-linux-gnu-
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-        export CC=clang
         
-        # 1. Tạo file .config (Thay 'your_device_defconfig' bằng file defconfig của bạn)
-        make O=out munch_defconfig
+        # 3. Tạo defconfig
+        make O=out LLVM=1 LLVM_IAS=1 munch_defconfig
         
-        # 2. Bắt đầu build
-        make -j$(nproc --all) O=out
+        # 4. Tiến hành build với cờ LLVM=1 và LLVM_IAS=1
+        make -j$(nproc --all) O=out LLVM=1 LLVM_IAS=1
+        
 
     - name: Thu thập kết quả Build
       run: |
