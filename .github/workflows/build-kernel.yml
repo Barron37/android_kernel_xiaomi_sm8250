@@ -26,19 +26,21 @@ jobs:
         
         # Clone repo Clang mới
         git clone --depth=1 https://github.com/kdrag0n/proton-clang.git -b master clang
-        
+
     - name: Biên dịch Kernel
       run: |
+        cd $GITHUB_WORKSPACE
         
         # 1. Thêm Clang vào PATH
         export PATH="$(pwd)/clang/bin:$PATH"
         
-        # 2. Khai báo các biến môi trường bắt buộc cho Clang LLVM
+        # 2. Khai báo biến môi trường chuẩn cho Clang Cross-Compile
         export ARCH=arm64
         export SUBARCH=arm64
         export CC=clang
         export CXX=clang++
-
+        
+        # Ép Host Tools sử dụng GCC của Ubuntu runner để tránh lỗi Linker
         export HOSTCC=gcc
         export HOSTCXX=g++
         
@@ -46,11 +48,14 @@ jobs:
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         
-        # 3. Tạo defconfig
-        make O=out LLVM=1 LLVM_IAS=1 munch_defconfig
+        # 3. Clean thư mục out và nạp defconfig
+        rm -rf out
+        mkdir -p out
+        make O=out HOSTCC=gcc HOSTCXX=g++ munch_defconfig
         
-        # 4. Tiến hành build với cờ LLVM=1 và LLVM_IAS=1
-        make -j$(nproc --all) O=out LLVM=1 LLVM_IAS=1
+        # 4. Bắt đầu build
+        make -j$(nproc --all) O=out HOSTCC=gcc HOSTCXX=g++
+        
         
 
     - name: Thu thập kết quả Build
