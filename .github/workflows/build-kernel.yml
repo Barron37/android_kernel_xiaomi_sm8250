@@ -29,7 +29,7 @@ jobs:
         
     - name: Biên dịch Kernel
       run: |
-        cd $GITHUB_WORKSPACE
+        
         # 1. Thêm Clang vào PATH
         export PATH="$(pwd)/clang/bin:$PATH"
         
@@ -38,6 +38,10 @@ jobs:
         export SUBARCH=arm64
         export CC=clang
         export CXX=clang++
+
+        export HOSTCC=gcc
+        export HOSTCXX=g++
+        
         export CLANG_TRIPLE=aarch64-linux-gnu-
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
